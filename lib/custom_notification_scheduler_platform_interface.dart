@@ -11,12 +11,10 @@ abstract class CustomNotificationSchedulerPlatform extends PlatformInterface {
   static CustomNotificationSchedulerPlatform get instance => _instance;
 
   static set instance(CustomNotificationSchedulerPlatform instance) {
-    if (instance == null) {
-      throw UnsupportedError('Instance cannot be null!');
-    }
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }
+
 
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('getPlatformVersion has not been implemented.');
