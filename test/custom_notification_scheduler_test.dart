@@ -1,0 +1,29 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:custom_notification_scheduler/custom_notification_scheduler.dart';
+import 'package:custom_notification_scheduler/custom_notification_scheduler_platform_interface.dart';
+import 'package:custom_notification_scheduler/custom_notification_scheduler_method_channel.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+class MockCustomNotificationSchedulerPlatform
+    with MockPlatformInterfaceMixin
+    implements CustomNotificationSchedulerPlatform {
+
+  @override
+  Future<String?> getPlatformVersion() => Future.value('42');
+}
+
+void main() {
+  final CustomNotificationSchedulerPlatform initialPlatform = CustomNotificationSchedulerPlatform.instance;
+
+  test('$MethodChannelCustomNotificationScheduler is the default instance', () {
+    expect(initialPlatform, isInstanceOf<MethodChannelCustomNotificationScheduler>());
+  });
+
+  test('getPlatformVersion', () async {
+    CustomNotificationScheduler customNotificationSchedulerPlugin = CustomNotificationScheduler();
+    MockCustomNotificationSchedulerPlatform fakePlatform = MockCustomNotificationSchedulerPlatform();
+    CustomNotificationSchedulerPlatform.instance = fakePlatform;
+
+    expect(await customNotificationSchedulerPlugin.getPlatformVersion(), '42');
+  });
+}
