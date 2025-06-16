@@ -1,3 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="app.vercel.zihadsikder.custom_notification_scheduler">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <receiver android:name="app.vercel.zihadsikder.customnotificationscheduler.NotificationReceiver" />
+    </application>
 </manifest>

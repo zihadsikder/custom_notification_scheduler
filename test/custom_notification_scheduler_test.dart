@@ -4,6 +4,7 @@ import 'package:custom_notification_scheduler/custom_notification_scheduler_plat
 import 'package:custom_notification_scheduler/custom_notification_scheduler_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+
 class MockCustomNotificationSchedulerPlatform
     with MockPlatformInterfaceMixin
     implements CustomNotificationSchedulerPlatform {
@@ -20,10 +21,11 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    CustomNotificationScheduler customNotificationSchedulerPlugin = CustomNotificationScheduler();
+    // Set up the mock platform
     MockCustomNotificationSchedulerPlatform fakePlatform = MockCustomNotificationSchedulerPlatform();
     CustomNotificationSchedulerPlatform.instance = fakePlatform;
 
-    expect(await customNotificationSchedulerPlugin.getPlatformVersion(), '42');
+    // Call the static method using the class name
+    expect(await CustomNotificationScheduler.getPlatformVersion(), '42');
   });
 }

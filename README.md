@@ -1,15 +1,28 @@
 # custom_notification_scheduler
 
-A new Flutter plugin project.
+A Flutter plugin to schedule custom local notifications on Android and iOS with support for custom sounds, payloads, and repeat intervals.
 
-## Getting Started
+## Installation
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+Add `custom_notification_scheduler` to your `pubspec.yaml`:
+## Usage
+    import 'package:custom_notification_scheduler/custom_notification_scheduler.dart';
+    
+    void scheduleNotification() {
+    CustomNotificationScheduler.scheduleNotification(
+    title: "Reminder",
+    body: "Time to take action!",
+    scheduledTime: DateTime.now().add(Duration(minutes: 5)),
+    sound: "custom_sound.mp3", // Optional
+    payload: {"id": 1}, // Optional
+    repeatInterval: RepeatInterval.daily, // Optional
+    );
+    }
+    
+    void cancelNotifications() {
+    CustomNotificationScheduler.cancelAllNotifications();
+    }
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+```yaml
+dependencies:
+  custom_notification_scheduler: ^0.0.1

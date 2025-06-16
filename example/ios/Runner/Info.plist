@@ -47,5 +47,14 @@
 	<true/>
 	<key>NSUserNotificationUsageDescription</key>
     <string>This app needs permission to send notifications.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+      <string>fetch</string>
+    </array>
+    <key>UNUserNotificationCenter</key>
+    <dict>
+      <key>UNShowPreviewsSetting</key>
+      <string>1</string>
+    </dict>
 </dict>
 </plist>

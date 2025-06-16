@@ -11,14 +11,15 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.util.*
+import java.time.ZonedDateTime // Added for ZonedDateTime
+import java.util.Date
 
 class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
   private lateinit var channel: MethodChannel
   private lateinit var context: Context
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "custom_notification_scheduler")
+    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "app.vercel.zihadsikder.custom_notification_scheduler")
     channel.setMethodCallHandler(this)
     context = flutterPluginBinding.applicationContext
   }

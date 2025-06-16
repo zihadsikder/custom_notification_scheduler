@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 class CustomNotificationScheduler {
   static const MethodChannel _channel =
-  MethodChannel('custom_notification_scheduler');
+  MethodChannel('app.vercel.zihadsikder.custom_notification_scheduler');
 
   /// Schedules a notification with optional custom sound, payload, and repeat interval.
   static Future<void> scheduleNotification({
@@ -29,6 +29,11 @@ class CustomNotificationScheduler {
   /// Cancels all scheduled notifications.
   static Future<void> cancelAllNotifications() async {
     await _channel.invokeMethod('cancelAllNotifications');
+  }
+  /// Returns the platform version (e.g., Android or iOS version).
+  static Future<String?> getPlatformVersion() async {
+    final version = await _channel.invokeMethod<String>('getPlatformVersion');
+    return version;
   }
 }
 
