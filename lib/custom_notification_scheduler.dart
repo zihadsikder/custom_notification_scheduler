@@ -2,44 +2,38 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-class CustomNotificationScheduler {
-  static const MethodChannel _channel =
-  MethodChannel('app.vercel.zihadsikder.custom_notification_scheduler');
+import 'package:custom_notification_scheduler/custom_notification_scheduler_platform_interface.dart';
 
-  /// Schedules a notification with optional custom sound, payload, and repeat interval.
+enum RepeatInterval { daily, weekly }
+
+class CustomNotificationScheduler {
+  static const MethodChannel _channel = MethodChannel('app.vercel.zihadsikder.custom_notification_scheduler');
+
   static Future<void> scheduleNotification({
     required String title,
     required String body,
     required DateTime scheduledTime,
-    String? sound, // Custom sound file name (e.g., "custom_sound.mp3")
-    Map<String, dynamic>? payload, // Custom data payload
-    RepeatInterval? repeatInterval, // Repeat option
+    String? sound,
+    Map<String, dynamic>? payload,
+    RepeatInterval? repeatInterval,
   }) async {
-    final args = {
+    final scheduledTimeStr = scheduledTime.toIso8601String();
+    print('Sending scheduledTime: $scheduledTimeStr'); // Debug log
+    await _channel.invokeMethod('scheduleNotification', {
       'title': title,
       'body': body,
-      'scheduledTime': scheduledTime.toIso8601String(),
-      'sound': sound,
-      'payload': payload ?? {},
-      'repeatInterval': repeatInterval?.toString(),
-    };
-    await _channel.invokeMethod('scheduleNotification', args);
+      'scheduledTime': scheduledTimeStr,
+      if (sound != null) 'sound': sound,
+      if (payload != null) 'payload': payload,
+      if (repeatInterval != null) 'repeatInterval': repeatInterval.toString().split('.').last,
+    });
   }
 
-  /// Cancels all scheduled notifications.
   static Future<void> cancelAllNotifications() async {
     await _channel.invokeMethod('cancelAllNotifications');
   }
-  /// Returns the platform version (e.g., Android or iOS version).
-  static Future<String?> getPlatformVersion() async {
-    final version = await _channel.invokeMethod<String>('getPlatformVersion');
-    return version;
-  }
-}
 
-/// Enum for repeat intervals.
-enum RepeatInterval {
-  none,
-  daily,
-  weekly,
+  static Future<String?> getPlatformVersion() async {
+    return CustomNotificationSchedulerPlatform.instance.getPlatformVersion();
+  }
 }

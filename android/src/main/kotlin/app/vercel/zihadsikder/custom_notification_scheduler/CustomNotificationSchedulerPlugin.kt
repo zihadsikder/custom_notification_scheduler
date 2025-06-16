@@ -11,7 +11,10 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.time.ZonedDateTime // Added for ZonedDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Date
 
 class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
@@ -35,10 +38,19 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
         val repeatInterval = call.argument<String>("repeatInterval")
 
         val scheduledTime = try {
-          Date.from(ZonedDateTime.parse(scheduledTimeStr).toInstant())
+          val formatterWithZone = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withLocale(java.util.Locale.getDefault())
+          val zonedDateTime = ZonedDateTime.parse(scheduledTimeStr, formatterWithZone)
+          Date.from(zonedDateTime.toInstant())
         } catch (e: Exception) {
-          result.error("INVALID_TIME", "Invalid scheduled time", e)
-          return
+          try {
+            val formatterWithoutZone = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            val localDateTime = LocalDateTime.parse(scheduledTimeStr, formatterWithoutZone)
+            val zonedDateTime = localDateTime.atZone(ZoneId.systemDefault())
+            Date.from(zonedDateTime.toInstant())
+          } catch (e2: Exception) {
+            result.error("INVALID_TIME", "Invalid scheduled time: ${e2.message}", e2)
+            return
+          }
         }
 
         scheduleNotification(
@@ -53,6 +65,9 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
       }
       "cancelAllNotifications" -> {
         cancelAllNotifications(result)
+      }
+      "getPlatformVersion" -> {
+        result.success("Android ${android.os.Build.VERSION.RELEASE}")
       }
       else -> result.notImplemented()
     }
@@ -82,8 +97,13 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
     )
 
     val triggerTime = scheduledTime.time
+    if (triggerTime < System.currentTimeMillis()) {
+      result.error("INVALID_TIME", "Scheduled time must be in the future", null)
+      return
+    }
+
     when (repeatInterval) {
-      "RepeatInterval.daily" -> {
+      "daily" -> {
         alarmManager.setRepeating(
           AlarmManager.RTC_WAKEUP,
           triggerTime,
@@ -91,7 +111,7 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
           pendingIntent
         )
       }
-      "RepeatInterval.weekly" -> {
+      "weekly" -> {
         alarmManager.setRepeating(
           AlarmManager.RTC_WAKEUP,
           triggerTime,

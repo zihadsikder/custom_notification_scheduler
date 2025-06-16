@@ -8,7 +8,6 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 class MockCustomNotificationSchedulerPlatform
     with MockPlatformInterfaceMixin
     implements CustomNotificationSchedulerPlatform {
-
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
 }
@@ -16,16 +15,21 @@ class MockCustomNotificationSchedulerPlatform
 void main() {
   final CustomNotificationSchedulerPlatform initialPlatform = CustomNotificationSchedulerPlatform.instance;
 
+  setUp(() {
+    // Reset the instance before each test
+    CustomNotificationSchedulerPlatform.instance = MethodChannelCustomNotificationScheduler();
+  });
+
   test('$MethodChannelCustomNotificationScheduler is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelCustomNotificationScheduler>());
   });
 
   test('getPlatformVersion', () async {
     // Set up the mock platform
-    MockCustomNotificationSchedulerPlatform fakePlatform = MockCustomNotificationSchedulerPlatform();
+    final fakePlatform = MockCustomNotificationSchedulerPlatform();
     CustomNotificationSchedulerPlatform.instance = fakePlatform;
 
-    // Call the static method using the class name
+    // Call the static method
     expect(await CustomNotificationScheduler.getPlatformVersion(), '42');
   });
 }

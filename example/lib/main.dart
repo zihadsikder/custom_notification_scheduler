@@ -31,7 +31,6 @@ class _NotificationExampleState extends State<NotificationExample> {
   Future<void> _requestPermissions() async {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
-      // Request permission if not granted
       status = await Permission.notification.request();
       if (!status.isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -44,22 +43,30 @@ class _NotificationExampleState extends State<NotificationExample> {
   Future<void> _scheduleNotification() async {
     var status = await Permission.notification.status;
     if (status.isGranted) {
-      await CustomNotificationScheduler.scheduleNotification(
-        title: "Test",
-        body: "This is a test notification",
-        scheduledTime: DateTime.now().add(Duration(seconds: 10)),
-        sound: "custom_sound.mp3",
-        payload: {"test": "data"},
-        repeatInterval: RepeatInterval.daily,
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Notification scheduled!')),
-      );
+      // Set scheduledTime to 10 seconds from now
+      final scheduledTime = DateTime.now().add(Duration(seconds: 10));
+      print('Scheduling notification for: $scheduledTime');
+      try {
+        await CustomNotificationScheduler.scheduleNotification(
+          title: "Test",
+          body: "This is a test notification",
+          scheduledTime: scheduledTime,
+          sound: "custom_sound.mp3", // Ensure this file exists
+          payload: {"test": "data"},
+          repeatInterval: null, // Remove repeat for one-time test
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Notification scheduled for ${scheduledTime.toIso8601String()}!')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to schedule notification: $e')),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Notification permission denied')),
       );
-      // Optionally open app settings if denied
       await openAppSettings();
     }
   }
@@ -68,24 +75,26 @@ class _NotificationExampleState extends State<NotificationExample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Notification Example')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: _scheduleNotification,
-              child: Text('Schedule Notification'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                CustomNotificationScheduler.cancelAllNotifications();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('All notifications canceled!')),
-                );
-              },
-              child: Text('Cancel All'),
-            ),
-          ],
+      body: Builder( // Use Builder to avoid BuildContext access across async gaps
+        builder: (context) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => _scheduleNotification(),
+                child: Text('Schedule Notification'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  CustomNotificationScheduler.cancelAllNotifications();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('All notifications canceled!')),
+                  );
+                },
+                child: Text('Cancel All'),
+              ),
+            ],
+          ),
         ),
       ),
     );

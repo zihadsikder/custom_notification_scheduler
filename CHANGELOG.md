@@ -1,3 +1,5 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+- Initial release.
+- Supports Android and iOS.
+- Schedule and cancel notifications.

@@ -1,6 +1,6 @@
 name: custom_notification_scheduler_example
 description: A plugin to schedule custom local notifications on Android and iOS.
-
+homepage: https://zihadsikder.vercel.app
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
@@ -24,6 +24,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  mockito:
 
 # The following section is specific to Flutter packages.
 flutter:
