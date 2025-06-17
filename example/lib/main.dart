@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:custom_notification_scheduler/custom_notification_scheduler.dart';
@@ -8,6 +9,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,6 +20,8 @@ class MyApp extends StatelessWidget {
 }
 
 class NotificationExample extends StatefulWidget {
+  const NotificationExample({super.key});
+
   @override
   _NotificationExampleState createState() => _NotificationExampleState();
 }
@@ -37,7 +42,9 @@ class _NotificationExampleState extends State<NotificationExample> {
       await CustomNotificationScheduler.setNotificationSound('asset:custom_sound');
       _fcmToken = await CustomNotificationScheduler.getFcmToken();
       if (_fcmToken != null && mounted) {
-        print('FCM Token: $_fcmToken');
+        if (kDebugMode) {
+          print('FCM Token: $_fcmToken');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('FCM Token: $_fcmToken')),
         );
@@ -67,7 +74,9 @@ class _NotificationExampleState extends State<NotificationExample> {
     var status = await Permission.notification.status;
     if (status.isGranted) {
       final scheduledTime = DateTime.now().add(Duration(seconds: 10));
-      print('Scheduling notification for: $scheduledTime');
+      if (kDebugMode) {
+        print('Scheduling notification for: $scheduledTime');
+      }
       try {
         await CustomNotificationScheduler.scheduleNotification(
           title: "Test",
