@@ -1,5 +1,5 @@
 name: custom_notification_scheduler_example
-description: A plugin to schedule custom local notifications on Android and iOS.
+description: A Flutter plugin for scheduling notifications with custom sounds and FCM support. on Android and iOS.
 homepage: https://zihadsikder.vercel.app
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -13,9 +13,10 @@ dependencies:
   custom_notification_scheduler:
     path: /Users/zihad/Desktop/untitled folder/custom_notification_scheduler
   permission_handler:
-
-
-  cupertino_icons: ^1.0.8
+  flutter_local_notifications:
+  timezone:
+  plugin_platform_interface:
+  cupertino_icons:
 
 dev_dependencies:
   integration_test:
@@ -25,6 +26,7 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
   mockito:
+
 
 # The following section is specific to Flutter packages.
 flutter:

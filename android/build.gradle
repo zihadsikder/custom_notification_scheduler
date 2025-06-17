@@ -63,6 +63,8 @@ android {
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.mockito:mockito-core:5.0.0")
         implementation("androidx.core:core:1.12.0")// Add this line
+        implementation ("com.google.firebase:firebase-messaging:24.0.0")
+
     }
 
     testOptions {

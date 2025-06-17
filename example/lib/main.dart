@@ -22,17 +22,40 @@ class NotificationExample extends StatefulWidget {
 }
 
 class _NotificationExampleState extends State<NotificationExample> {
+  String? _fcmToken; // To store and display the FCM token
+
   @override
   void initState() {
     super.initState();
-    _requestPermissions();
+    _initializePlugin();
+  }
+
+  Future<void> _initializePlugin() async {
+    try {
+      await CustomNotificationScheduler.initialize();
+      await _requestPermissions();
+      await CustomNotificationScheduler.setNotificationSound('asset:custom_sound');
+      _fcmToken = await CustomNotificationScheduler.getFcmToken();
+      if (_fcmToken != null && mounted) {
+        print('FCM Token: $_fcmToken');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('FCM Token: $_fcmToken')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to initialize plugin: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _requestPermissions() async {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
       status = await Permission.notification.request();
-      if (!status.isGranted) {
+      if (!status.isGranted && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Notification permission is required to proceed.')),
         );
@@ -43,7 +66,6 @@ class _NotificationExampleState extends State<NotificationExample> {
   Future<void> _scheduleNotification() async {
     var status = await Permission.notification.status;
     if (status.isGranted) {
-      // Set scheduledTime to 10 seconds from now
       final scheduledTime = DateTime.now().add(Duration(seconds: 10));
       print('Scheduling notification for: $scheduledTime');
       try {
@@ -51,23 +73,28 @@ class _NotificationExampleState extends State<NotificationExample> {
           title: "Test",
           body: "This is a test notification",
           scheduledTime: scheduledTime,
-          sound: "custom_sound.mp3", // Ensure this file exists
           payload: {"test": "data"},
-          repeatInterval: null, // Remove repeat for one-time test
+          repeatInterval: null,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Notification scheduled for ${scheduledTime.toIso8601String()}!')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Notification scheduled for ${scheduledTime.toIso8601String()}!')),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to schedule notification: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to schedule notification: $e')),
+          );
+        }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Notification permission denied')),
-      );
-      await openAppSettings();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Notification permission denied')),
+        );
+        await openAppSettings();
+      }
     }
   }
 
@@ -75,21 +102,25 @@ class _NotificationExampleState extends State<NotificationExample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Notification Example')),
-      body: Builder( // Use Builder to avoid BuildContext access across async gaps
+      body: Builder(
         builder: (context) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text('FCM Token: ${_fcmToken ?? "Loading..."}'),
+              SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => _scheduleNotification(),
+                onPressed: _scheduleNotification,
                 child: Text('Schedule Notification'),
               ),
               ElevatedButton(
-                onPressed: () {
-                  CustomNotificationScheduler.cancelAllNotifications();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('All notifications canceled!')),
-                  );
+                onPressed: () async {
+                  await CustomNotificationScheduler.cancelAllNotifications();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('All notifications canceled!')),
+                    );
+                  }
                 },
                 child: Text('Cancel All'),
               ),

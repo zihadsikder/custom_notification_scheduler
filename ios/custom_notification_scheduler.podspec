@@ -4,26 +4,27 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'custom_notification_scheduler'
-  s.version          = '0.0.1'
-  s.summary          = 'A plugin to schedule custom local notifications on Android and iOS.'
+  s.version          = '0.0.1'  # Match with pubspec.yaml version
+  s.summary          = 'A Flutter plugin for scheduling notifications with custom sounds and FCM support.'
   s.description      = <<-DESC
-A new Flutter plugin project.
+                       A Flutter plugin that allows scheduling local notifications with custom sounds, payloads, and FCM token retrieval.
                        DESC
-  s.homepage         = https://github.com/zihadsikder/custom_notification_scheduler
+  s.homepage         = 'https://github.com/zihadsikder/custom_notification_scheduler'  # Ensure this is a valid URL
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'zihadsikder.vercel.com' }
+  s.author           = { 'Zihad Sikder' => 'zihad@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files     = 'Classes/**/*'
+  s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.platform = :ios, '12.0'
-
-  # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  s.platform = :ios, '12.0'  # Specify minimum iOS version
   s.swift_version = '5.0'
 
-  # If your plugin requires a privacy manifest, for example if it uses any
-  # required reason APIs, update the PrivacyInfo.xcprivacy file to describe your
-  # plugin's privacy impact, and then uncomment this line. For more information,
-  # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'custom_notification_scheduler_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  # Flutter.framework dependency
+  s.prepare_command = <<-CMD
+    find . -name '*.xcframework' -type d | while read -r framework; do
+      if [ -d "$framework/ios-arm64_armv7" ]; then
+        cp -r "$framework/ios-arm64_armv7" "$framework/ios"
+      fi
+    done
+  CMD
 end

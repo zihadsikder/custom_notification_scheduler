@@ -13,8 +13,8 @@ import androidx.core.app.NotificationCompat
 
 class NotificationReceiver : BroadcastReceiver() {
     companion object {
-        private const val CHANNEL_ID = "default_channel"
-        private const val CHANNEL_NAME = "Default Channel"
+        private const val CHANNEL_ID = "high_importance_channel"
+        private const val CHANNEL_NAME = "High Importance Notifications"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -25,12 +25,10 @@ class NotificationReceiver : BroadcastReceiver() {
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Sound URI
         val soundUri: Uri = sound?.let {
             Uri.parse("android.resource://${context.packageName}/raw/$it")
         } ?: Uri.parse("android.resource://${context.packageName}/raw/custom_sound")
 
-        // Create channel if needed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
             val audioAttributes = AudioAttributes.Builder()
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -42,11 +40,9 @@ class NotificationReceiver : BroadcastReceiver() {
                 setSound(soundUri, audioAttributes)
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             }
-
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Build notification
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
@@ -54,7 +50,6 @@ class NotificationReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setSound(soundUri)
 
-        // Add PendingIntent if payload available
         if (payload != null) {
             val intentWithPayload = Intent(context, getMainActivityClass(context)).apply {
                 putExtra("payload", payload as java.io.Serializable)
@@ -63,15 +58,14 @@ class NotificationReceiver : BroadcastReceiver() {
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
-                0,
+                System.currentTimeMillis().toInt(),
                 intentWithPayload,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             builder.setContentIntent(pendingIntent)
         }
 
-        // Show notification
-        notificationManager.notify(0, builder.build())
+        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
     private fun getMainActivityClass(context: Context): Class<*> {

@@ -1,11 +1,8 @@
 package app.vercel.zihadsikder.custom_notification_scheduler
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.os.Build
 import androidx.annotation.NonNull
+import com.google.firebase.messaging.FirebaseMessaging
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -66,6 +63,25 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
       "cancelAllNotifications" -> {
         cancelAllNotifications(result)
       }
+      "getFcmToken" -> {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+          if (task.isSuccessful) {
+            result.success(task.result)
+          } else {
+            result.error("FCM_ERROR", "Failed to get FCM token", task.exception)
+          }
+        }
+      }
+      "setNotificationSound" -> {
+        val soundPath = call.argument<String>("soundPath")
+        if (soundPath != null) {
+          // Notify Dart to update _currentSoundPath
+          channel.invokeMethod("updateSound", mapOf("soundPath" to soundPath))
+          result.success(true)
+        } else {
+          result.error("INVALID_SOUND", "Sound path is required", null)
+        }
+      }
       "getPlatformVersion" -> {
         result.success("Android ${android.os.Build.VERSION.RELEASE}")
       }
@@ -82,74 +98,29 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
     repeatInterval: String?,
     result: Result
   ) {
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    val intent = Intent(context, NotificationReceiver::class.java).apply {
-      putExtra("title", title)
-      putExtra("body", body)
-      putExtra("sound", sound)
-      putExtra("payload", payload as java.io.Serializable)
-    }
-    val pendingIntent = PendingIntent.getBroadcast(
-      context,
-      0,
-      intent,
-      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
     val triggerTime = scheduledTime.time
     if (triggerTime < System.currentTimeMillis()) {
       result.error("INVALID_TIME", "Scheduled time must be in the future", null)
       return
     }
 
-    when (repeatInterval) {
-      "daily" -> {
-        alarmManager.setRepeating(
-          AlarmManager.RTC_WAKEUP,
-          triggerTime,
-          AlarmManager.INTERVAL_DAY,
-          pendingIntent
-        )
-      }
-      "weekly" -> {
-        alarmManager.setRepeating(
-          AlarmManager.RTC_WAKEUP,
-          triggerTime,
-          AlarmManager.INTERVAL_DAY * 7,
-          pendingIntent
-        )
-      }
-      else -> {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-          alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerTime,
-            pendingIntent
-          )
-        } else {
-          alarmManager.setExact(
-            AlarmManager.RTC_WAKEUP,
-            triggerTime,
-            pendingIntent
-          )
-        }
-      }
-    }
+    channel.invokeMethod("scheduleLocalNotification", mapOf(
+      "title" to title,
+      "body" to body,
+      "scheduledTime" to triggerTime,
+      "sound" to sound,
+      "payload" to payload,
+      "repeatInterval" to repeatInterval
+    ))
     result.success(null)
   }
 
   private fun cancelAllNotifications(result: Result) {
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    val intent = Intent(context, NotificationReceiver::class.java)
-    val pendingIntent = PendingIntent.getBroadcast(
-      context,
-      0,
-      intent,
-      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-    alarmManager.cancel(pendingIntent)
+    channel.invokeMethod("cancelAllLocalNotifications", null)
     result.success(null)
   }
+
+
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
