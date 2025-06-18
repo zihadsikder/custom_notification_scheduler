@@ -21,7 +21,7 @@ A powerful Flutter plugin to schedule local notifications, retrieve FCM tokens, 
 Add the plugin to your pubspec.yaml:
 
     dependencies:
-        custom_notification_scheduler: ^0.0.3
+        custom_notification_scheduler: ^0.0.4
         flutter_local_notifications: ^15.1.1
         timezone: ^0.9.2
     flutter:
@@ -52,9 +52,20 @@ Enable notifications in Info.plist:
 
     <key>UIBackgroundModes</key>
     <array>
-    <string>fetch</string>
-    <string>remote-notification</string>
+       <string>fetch</string>
+       <string>remote-notification</string>
     </array>
+
+or 
+
+      <key>UIBackgroundModes</key>
+      <array>
+         <string>fetch</string>
+         <string>remote-notification</string>
+      </array>
+      <key>FirebaseAppDelegateProxyEnabled</key>
+      <false/>
+
 📚 Usage
 
 ## Setup

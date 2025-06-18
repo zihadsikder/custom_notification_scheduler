@@ -1,4 +1,4 @@
-## 0.0.3 (June 18, 2025)
+## 0.0.4 (June 18, 2025)
 - Improved release with enhanced compatibility and bug fixes.
 - **Features**:
   - Upgraded to `flutter_local_notifications` 19.2.1 for improved notification handling.

@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import UserNotifications
+import FirebaseMessaging
 
 @objc public class CustomNotificationSchedulerPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -19,7 +20,7 @@ import UserNotifications
             let body = args["body"] as? String,
             let scheduledTimeStr = args["scheduledTime"] as? String,
             let scheduledTime = ISO8601DateFormatter().date(from: scheduledTimeStr) else {
-        result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments", details: nil))
+        result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid arguments for scheduleNotification", details: nil))
         return
       }
       let sound = args["sound"] as? String
@@ -29,6 +30,17 @@ import UserNotifications
       scheduleNotification(title: title, body: body, scheduledTime: scheduledTime, sound: sound, payload: payload, repeatInterval: repeatInterval, result: result)
     case "cancelAllNotifications":
       cancelAllNotifications(result)
+    case "getFcmToken":
+      getFcmToken(result)
+    case "setNotificationSound":
+      guard let args = call.arguments as? [String: Any],
+            let soundPath = args["soundPath"] as? String else {
+        result(FlutterError(code: "INVALID_ARGUMENTS", message: "Invalid sound path", details: nil))
+        return
+      }
+      setNotificationSound(soundPath, result)
+    case "getPlatformVersion":
+      result("iOS " + UIDevice.current.systemVersion)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -38,17 +50,23 @@ import UserNotifications
     let content = UNMutableNotificationContent()
     content.title = title
     content.body = body
-    content.sound = sound.map { UNNotificationSound(named: UNNotificationSoundName(rawValue: $0)) } ?? UNNotificationSound.default
-    content.userInfo = payload
+    content.userInfo = payload // Support for deep-linking or custom logic
+
+    // Handle custom sound
+    if let sound = sound, !sound.isEmpty {
+      content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: sound))
+    } else {
+      content.sound = UNNotificationSound.default
+    }
 
     let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: scheduledTime)
     let trigger: UNNotificationTrigger
     if let interval = repeatInterval {
       switch interval {
-      case "RepeatInterval.daily":
-        trigger = UNTimeIntervalNotificationTrigger(timeInterval: 86400, repeats: true)
-      case "RepeatInterval.weekly":
-        trigger = UNTimeIntervalNotificationTrigger(timeInterval: 604800, repeats: true)
+      case "daily":
+        trigger = UNTimeIntervalNotificationTrigger(timeInterval: 86400, repeats: true) // 24 hours
+      case "weekly":
+        trigger = UNTimeIntervalNotificationTrigger(timeInterval: 604800, repeats: true) // 7 days
       default:
         trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
       }
@@ -69,5 +87,25 @@ import UserNotifications
   private func cancelAllNotifications(_ result: @escaping FlutterResult) {
     UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     result(nil)
+  }
+
+  private func getFcmToken(_ result: @escaping FlutterResult) {
+    Messaging.messaging().token { token, error in
+      if let error = error {
+        result(FlutterError(code: "FCM_ERROR", message: "Failed to get FCM token", details: error.localizedDescription))
+      } else if let token = token {
+        result(token)
+      } else {
+        result(nil)
+      }
+    }
+  }
+
+  private func setNotificationSound(_ soundPath: String, _ result: @escaping FlutterResult) {
+    // Store sound path or update notification settings (placeholder logic)
+    // Note: This method currently notifies Dart to update _currentSoundPath
+    let channel = FlutterMethodChannel(name: "app.vercel.zihadsikder.custom_notification_scheduler", binaryMessenger: .init(project: nil))
+    channel.invokeMethod("updateSound", arguments: ["soundPath": soundPath])
+    result(true)
   }
 }

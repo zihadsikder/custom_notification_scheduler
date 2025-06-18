@@ -175,7 +175,7 @@ packages:
       path: "/Users/zihad/Desktop/untitled folder/custom_notification_scheduler"
       relative: false
     source: path
-    version: "0.0.2"
+    version: "0.0.3"
   dart_style:
     dependency: transitive
     description:
