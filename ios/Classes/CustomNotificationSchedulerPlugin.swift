@@ -3,14 +3,18 @@ import UIKit
 import UserNotifications
 import FirebaseMessaging
 
-@objc public class CustomNotificationSchedulerPlugin: NSObject, FlutterPlugin {
+@objc public class CustomNotificationSchedulerPlugin: NSObject, FlutterPlugin, UNUserNotificationCenterDelegate {
+  private var channel: FlutterMethodChannel?
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "app.vercel.zihadsikder.custom_notification_scheduler", binaryMessenger: registrar.messenger())
     let instance = CustomNotificationSchedulerPlugin()
+    instance.channel = channel
     channel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
       instance.handle(call, result: result)
     }
+    UNUserNotificationCenter.current().delegate = instance
   }
+
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
@@ -39,6 +43,9 @@ import FirebaseMessaging
         return
       }
       setNotificationSound(soundPath, result)
+    case "getDeviceTimezone":
+          let timezone = TimeZone.current.identifier // e.g., "Asia/Dhaka"
+          result(timezone)
     case "getPlatformVersion":
       result("iOS " + UIDevice.current.systemVersion)
     default:
@@ -102,10 +109,7 @@ import FirebaseMessaging
   }
 
   private func setNotificationSound(_ soundPath: String, _ result: @escaping FlutterResult) {
-    // Store sound path or update notification settings (placeholder logic)
-    // Note: This method currently notifies Dart to update _currentSoundPath
-    let channel = FlutterMethodChannel(name: "app.vercel.zihadsikder.custom_notification_scheduler", binaryMessenger: .init(project: nil))
-    channel.invokeMethod("updateSound", arguments: ["soundPath": soundPath])
+    channel?.invokeMethod("updateSound", arguments: ["soundPath": soundPath])
     result(true)
   }
 }

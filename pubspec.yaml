@@ -1,6 +1,6 @@
 name: custom_notification_scheduler
 description: A Flutter plugin for scheduling notifications with custom sounds and FCM support. on Android and iOS.
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/zihadsikder/custom_notification_scheduler
 
 environment:
@@ -14,6 +14,7 @@ dependencies:
   flutter_local_notifications: ^19.2.1
   flutter_local_notifications_platform_interface: ^9.0.0
   timezone: ^0.10.1
+  get: ^4.6.6
 
 dev_dependencies:
   flutter_test:
@@ -23,6 +24,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/sounds/custom_sound.mp3
+    # - assets/latest_all.tzf
   plugin:
     platforms:
       android:

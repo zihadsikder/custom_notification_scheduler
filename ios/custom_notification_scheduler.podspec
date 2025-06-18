@@ -16,6 +16,7 @@ Pod::Spec.new do |s|
   s.source_files     = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
+  s.dependency 'Firebase/Messaging'
   s.platform = :ios, '12.0'  # Specify minimum iOS version
   s.swift_version = '5.0'
 

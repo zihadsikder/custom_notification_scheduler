@@ -1,6 +1,7 @@
 package app.vercel.zihadsikder.custom_notification_scheduler
 
 import android.content.Context
+import android.os.Build
 import androidx.annotation.NonNull
 import com.google.firebase.messaging.FirebaseMessaging
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -8,11 +9,8 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
   private lateinit var channel: MethodChannel
@@ -35,19 +33,12 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
         val repeatInterval = call.argument<String>("repeatInterval")
 
         val scheduledTime = try {
-          val formatterWithZone = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withLocale(java.util.Locale.getDefault())
-          val zonedDateTime = ZonedDateTime.parse(scheduledTimeStr, formatterWithZone)
-          Date.from(zonedDateTime.toInstant())
+          val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+          sdf.timeZone = TimeZone.getTimeZone("UTC")
+          sdf.parse(scheduledTimeStr) ?: throw IllegalArgumentException("Invalid date format")
         } catch (e: Exception) {
-          try {
-            val formatterWithoutZone = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-            val localDateTime = LocalDateTime.parse(scheduledTimeStr, formatterWithoutZone)
-            val zonedDateTime = localDateTime.atZone(ZoneId.systemDefault())
-            Date.from(zonedDateTime.toInstant())
-          } catch (e2: Exception) {
-            result.error("INVALID_TIME", "Invalid scheduled time: ${e2.message}", e2)
-            return
-          }
+          result.error("INVALID_TIME", "Invalid scheduled time format: ${e.message}", e)
+          return
         }
 
         scheduleNotification(
@@ -75,15 +66,18 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
       "setNotificationSound" -> {
         val soundPath = call.argument<String>("soundPath")
         if (soundPath != null) {
-          // Notify Dart to update _currentSoundPath
           channel.invokeMethod("updateSound", mapOf("soundPath" to soundPath))
           result.success(true)
         } else {
           result.error("INVALID_SOUND", "Sound path is required", null)
         }
       }
+      "getDeviceTimezone" -> {
+        val timezone = TimeZone.getDefault().id // e.g., "Asia/Dhaka"
+        result.success(timezone)
+      }
       "getPlatformVersion" -> {
-        result.success("Android ${android.os.Build.VERSION.RELEASE}")
+        result.success("Android ${Build.VERSION.RELEASE}")
       }
       else -> result.notImplemented()
     }
@@ -104,22 +98,49 @@ class CustomNotificationSchedulerPlugin : FlutterPlugin, MethodCallHandler {
       return
     }
 
-    channel.invokeMethod("scheduleLocalNotification", mapOf(
+    val args = mapOf(
       "title" to title,
       "body" to body,
       "scheduledTime" to triggerTime,
       "sound" to sound,
       "payload" to payload,
       "repeatInterval" to repeatInterval
-    ))
-    result.success(null)
+    )
+
+    val resultCallback = result
+
+    channel.invokeMethod("scheduleLocalNotification", args, object : MethodChannel.Result {
+      override fun success(response: Any?) {
+        resultCallback.success(null)
+      }
+
+      override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+        resultCallback.error(errorCode, errorMessage, errorDetails)
+      }
+
+      override fun notImplemented() {
+        resultCallback.notImplemented()
+      }
+    })
   }
 
   private fun cancelAllNotifications(result: Result) {
-    channel.invokeMethod("cancelAllLocalNotifications", null)
-    result.success(null)
-  }
+    val resultCallback = result
 
+    channel.invokeMethod("cancelAllLocalNotifications", null, object : MethodChannel.Result {
+      override fun success(response: Any?) {
+        resultCallback.success(null)
+      }
+
+      override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
+        resultCallback.error(errorCode, errorMessage, errorDetails)
+      }
+
+      override fun notImplemented() {
+        resultCallback.notImplemented()
+      }
+    })
+  }
 
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {

@@ -73,7 +73,7 @@ class _NotificationExampleState extends State<NotificationExample> {
   Future<void> _scheduleNotification() async {
     var status = await Permission.notification.status;
     if (status.isGranted) {
-      final scheduledTime = DateTime.now().add(Duration(seconds: 10));
+      final scheduledTime = DateTime.now().add(Duration(seconds: 5));
       if (kDebugMode) {
         print('Scheduling notification for: $scheduledTime');
       }
