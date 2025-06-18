@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -8,7 +7,6 @@ import 'package:flutter_local_notifications_platform_interface/flutter_local_not
 
 enum RepeatInterval { daily, weekly }
 
-// Map your custom RepeatInterval to flutter_local_notifications_platform_interface RepeatInterval
 platform.RepeatInterval _mapToPlatformRepeatInterval(RepeatInterval interval) {
   switch (interval) {
     case RepeatInterval.daily:
@@ -23,13 +21,11 @@ platform.RepeatInterval _mapToPlatformRepeatInterval(RepeatInterval interval) {
 class CustomNotificationScheduler {
   static const MethodChannel _channel = MethodChannel('app.vercel.zihadsikder.custom_notification_scheduler');
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  static String? _currentSoundPath; // Store the current sound path
+  static String? _currentSoundPath;
 
   static Future<void> initialize() async {
-    const AndroidInitializationSettings androidSettings =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings =
-    DarwinInitializationSettings(
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -46,7 +42,6 @@ class CustomNotificationScheduler {
       },
     );
 
-    // Set up method channel for sound updates
     _channel.setMethodCallHandler(_handleMethodCalls);
   }
 
@@ -76,12 +71,14 @@ class CustomNotificationScheduler {
         ? RawResourceAndroidNotificationSound(soundToUse.replaceFirst('asset:', '').replaceAll('.mp3', ''))
         : null;
 
-    final AndroidNotificationDetails androidDetails =
-    AndroidNotificationDetails('high_importance_channel', 'High Importance Notifications',
-        channelDescription: 'Channel for high-priority notifications',
-        importance: Importance.max,
-        priority: Priority.high,
-        sound: androidSound);
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'high_importance_channel',
+      'High Importance Notifications',
+      channelDescription: 'Channel for high-priority notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      sound: androidSound,
+    );
 
     final DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,

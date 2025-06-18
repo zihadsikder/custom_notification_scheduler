@@ -21,7 +21,7 @@ A powerful Flutter plugin to schedule local notifications, retrieve FCM tokens, 
 Add the plugin to your pubspec.yaml:
 
     dependencies:
-        custom_notification_scheduler: ^0.0.2
+        custom_notification_scheduler: ^0.0.3
         flutter_local_notifications: ^15.1.1
         timezone: ^0.9.2
     flutter:
